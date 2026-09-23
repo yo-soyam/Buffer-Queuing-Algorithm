@@ -1,11 +1,12 @@
 import React, { useRef, useState } from 'react';
 import { Animated, PanResponder, StyleSheet, TouchableOpacity, Text, View, Modal } from 'react-native';
-import { Link, useRouter } from 'expo-router';
+import { Link, useRouter, usePathname } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 export default function DevNavigationButton() {
   const [modalVisible, setModalVisible] = useState(false);
   const router = useRouter();
+  const pathname = usePathname();
   const pan = useRef(new Animated.ValueXY()).current;
   
   const panResponder = useRef(
@@ -31,6 +32,12 @@ export default function DevNavigationButton() {
       }
     })
   ).current;
+
+  // Hide DEV button completely from the workflow section (after all hooks are called)
+  const isWorkflowSection = pathname.startsWith('/workflows') || pathname.startsWith('/create-workflow');
+  if (isWorkflowSection) {
+    return null;
+  }
 
   // Render unconditionally for now to ensure it shows up regardless of env config during testing
   return (
@@ -58,6 +65,10 @@ export default function DevNavigationButton() {
         <SafeAreaView style={styles.modalOverlay}>
           <View style={styles.modalView}>
             <Text style={styles.modalTitle}>Dev Navigation</Text>
+            
+            <TouchableOpacity onPress={() => { setModalVisible(false); router.push('/workflows' as any); }}>
+              <Text style={[styles.link, { color: '#004d99', fontWeight: 'bold' }]}>Workflows Dashboard</Text>
+            </TouchableOpacity>
             
             <TouchableOpacity onPress={() => { setModalVisible(false); router.push('/customer-dashboard'); }}>
               <Text style={styles.link}>Customer Dashboard</Text>
